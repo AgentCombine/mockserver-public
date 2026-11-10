@@ -334,6 +334,18 @@ repository, not the reactor**. A single `-am package` after local source changes
 working tree. (The release pipeline is unaffected — it shades the artifact published to Maven
 Central, or builds fresh in a clean container.)
 
+## Process termination
+
+Every server started by the CLI registers a JVM shutdown hook that calls the normal
+`MockServer.stop()` path. On HotSpot, SIGHUP, SIGINT and SIGTERM close listeners,
+wait for in-flight requests up to `stopDrainMillis`, and flush traffic recording
+before tearing down the runtime.
+The container or orchestrator shutdown allowance must exceed that drain plus teardown time.
+SIGHUP shuts down the server rather than reloading configuration. SIGQUIT preserves
+HotSpot's diagnostic behavior: print a thread dump and continue running. These
+signal handlers require normal JVM signal handling; do not use `-Xrs` when relying
+on them. SIGKILL cannot run a JVM hook.
+
 ## Readiness vs liveness for orchestrators
 
 Operators wiring health checks (Kubernetes, Compose, load balancers) have two distinct endpoints:

@@ -434,6 +434,7 @@ public class Main {
             } else {
                 mockServer = new MockServer(localPorts);
             }
+            Runtime.getRuntime().addShutdownHook(new Thread(mockServer::stop, "MockServer shutdown"));
             // Record the ACTUAL bound port(s), not the requested value(s). Starting with a
             // requested port of 0 asks the OS for an ephemeral port; recording the requested 0
             // would leave a caller (a CLI user, or an in-process test) unable to discover the

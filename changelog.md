@@ -38,6 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The standalone CLI starts graceful server shutdown on process termination signals.
+
+- Graceful shutdown drains queued native request recordings before closing their output, and closes the state backend even if an earlier shutdown step fails.
+
+- Basic proxy authentication accepts case-insensitive scheme names while keeping credential comparison case-sensitive.
+
 - With an extension response transformer loaded, the event log entry for a streamed forwarded response (for example server-sent events) now has the CORS headers (`enableCORSForAllResponses`) and `defaultResponseHeaders` the client received, as it does with no extension loaded; before, they were missing from the recorded response
 - A `PUT /mockserver/trafficValidate` that arrives while MockServer is stopping is still answered `503`, but no longer logs an `ERROR` with a stack trace, and its body says only that MockServer is stopping rather than naming the internal executor and its pool sizes; other control-plane endpoints already treated a stopping server this way
 - A client that uses MockServer as its HTTP `CONNECT`, SOCKS5 or SOCKS4 proxy for a protocol that is not HTTP, such as PostgreSQL, MySQL, Redis or SMTP, now has the tunnel proxied as a binary connection to the tunnel's destination, with binary expectations, the event log, in-band TLS (PostgreSQL `sslmode=require`), upstream proxies and the forward-target checks, as on a port-forwarded connection. Such a tunnel was answered `400 Bad Request`, or left waiting when the client's first bytes had no line end. MockServer tells the protocol from the client's first bytes: TLS, the h2c preface and an HTTP/1.x request line, whatever its method, are served as HTTP as before, and anything else is binary; first bytes that could still become a request line are held until the client has sent nothing for one second. A server that speaks first (MySQL, SMTP) needs `forwardBinaryServerFirstWaitMillis`, which now also applies to a tunnel from the moment it is open. MockServer never relays a binary connection, a tunnelled one included, back into one of its own listening ports, so tunnels cannot be nested inside each other through MockServer itself
